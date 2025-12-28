@@ -1,21 +1,36 @@
 // lib/providers/auth_provider.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:frontend/models/user.dart';
 import '../services/auth_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
   String? _token;
+  User? _user;
   bool _isLoading = false;
 
   String? get token => _token;
+  User? get user => _user;
   bool get isAuthenticated => _token != null;
   bool get isLoading => _isLoading;
 
   Future<void> autoLogin() async {
     _isLoading = true;
     _token = await _storage.read(key: 'jwt_token');
+
+    if (_token != null) {
+      // Fetch fresh profile data using the stored token
+      try {
+        _user = await _authService.fetchCurrentUser(_token!);
+      } catch (e) {
+        // If token fails to fetch profile (e.g., token expired), log out.
+        await logout();
+      }
+    }
+    print(_user);
     _isLoading = false;
     notifyListeners();
   }
@@ -27,6 +42,10 @@ class AuthProvider extends ChangeNotifier {
       final token = await _authService.getLoginToken(email, password);
       print("GOT TOKEN: $token");
       _token = token;
+
+      //using token to fetch the profile
+      _user = await _authService.fetchCurrentUser(token!);
+
       await _storage.write(key: 'jwt_token', value: token);
     } catch (e) {
       _token = null;
@@ -36,6 +55,22 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  //register
+Future<bool> register(String username, String email, String password) async {
+  _isLoading = true;
+  notifyListeners();
+  try {
+    await _authService.register(username, email, password);
+    _isLoading = false;
+    notifyListeners();
+    return true; // Success
+  } catch (e) {
+    _isLoading = false;
+    notifyListeners();
+    rethrow;
+  }
+}
 
   Future<void> logout() async {
     _token = null;

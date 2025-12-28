@@ -1,5 +1,6 @@
 // lib/screens/login_screen.dart
 import 'package:flutter/material.dart';
+import 'package:frontend/screens/register_screen.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 
@@ -113,13 +114,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     );
                   },
                 ),
-                // TODO: Add a button to navigate to a Registration screen
                 TextButton(
                   onPressed: () {
-                    // Navigator.pushNamed(context, '/register');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Registration UI coming soon!'),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RegisterScreen(),
                       ),
                     );
                   },

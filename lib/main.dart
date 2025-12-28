@@ -1,5 +1,6 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
+import 'package:frontend/providers/movie_provider.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'screens/login_screen.dart';
@@ -9,8 +10,11 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => AuthProvider()..autoLogin(), 
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => AuthProvider()..autoLogin()),
+        ChangeNotifierProvider(create: (context) => MovieProvider()), // Add MovieProvider here
+      ],
       child: const MovieSuggestionApp(),
     ),
   );
