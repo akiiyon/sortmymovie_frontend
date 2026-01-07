@@ -1,5 +1,6 @@
 // lib/screens/register_screen.dart
 import 'package:flutter/material.dart';
+import 'package:frontend/screens/home_screen.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 
@@ -19,22 +20,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _handleRegister() async {
     if (_formKey.currentState!.validate()) {
       try {
-        final success = await Provider.of<AuthProvider>(context, listen: false).register(
-          _usernameController.text,
-          _emailController.text,
-          _passwordController.text,
-        );
+        final success = await Provider.of<AuthProvider>(context, listen: false)
+            .register(
+              _usernameController.text,
+              _emailController.text,
+              _passwordController.text,
+            );
 
         if (success && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Registration successful! Please login.')),
+            const SnackBar(
+              content: Text('Registration successful! Please login.'),
+            ),
           );
-          Navigator.pop(context); // Go back to login screen
+          Navigator.pushNamed(context, "/home"); // Go to home screen
         }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
       }
     }
   }
@@ -54,29 +58,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
             children: [
               TextFormField(
                 controller: _usernameController,
-                decoration: const InputDecoration(labelText: 'Username', prefixIcon: Icon(Icons.person)),
+                decoration: const InputDecoration(
+                  labelText: 'Username',
+                  prefixIcon: Icon(Icons.person),
+                ),
                 validator: (val) => val!.isEmpty ? 'Enter a username' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email)),
-                validator: (val) => val!.contains('@') ? null : 'Enter a valid email',
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.email),
+                ),
+                validator: (val) =>
+                    val!.contains('@') ? null : 'Enter a valid email',
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Password', prefixIcon: Icon(Icons.lock)),
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: Icon(Icons.lock),
+                ),
                 obscureText: true,
-                validator: (val) => val!.length < 6 ? 'Password too short' : null,
+                validator: (val) =>
+                    val!.length < 6 ? 'Password too short' : null,
               ),
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: isLoading ? null : _handleRegister,
-                  style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16)),
-                  child: isLoading ? const CircularProgressIndicator() : const Text('Register'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.all(16),
+                  ),
+                  child: isLoading
+                      ? const CircularProgressIndicator()
+                      : const Text('Register'),
                 ),
               ),
             ],

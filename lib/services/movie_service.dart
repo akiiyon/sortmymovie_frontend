@@ -49,42 +49,76 @@ class MovieService {
       );
     }
   }
+  // lib/services/movie_service.dart
 
-  // 4. Fetch the user's full saved list
   Future<List<Movie>> fetchSavedMovies(String token) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/saved'), // Assuming endpoint is /api/movies/saved
-      headers: _authHeaders(token),
-    );
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/saved'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
 
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonList = jsonDecode(response.body);
-      
-      // The backend should return the Movie object structure from your DB
-      return jsonList.map((json) => Movie.fromJson(json)).toList(); 
-    } else {
-      throw Exception('Failed to load saved list.');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        print(data);
+
+        // DEBUG: Print to confirm we see the clean list
+        print("✅ Service received: ${data.length} movies");
+
+        // Directly map the JSON objects to Movie models
+        return data.map((json) => Movie.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load saved movies: ${response.statusCode}');
+      }
+    } catch (e) {
+      print("❌ Service Error: $e");
+      throw e;
     }
   }
 
-//airecommendations
+  // ➕ ADDED: Method to call the backend reject route
+  Future<void> rejectMovie(String token, int movieId, String title) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/reject'), // Hits app.post("/api/movies/reject")
+      headers: _authHeaders(token),
+      body: jsonEncode({'tmdb_id': movieId,'title':title}),
+    );
 
-Future<List<String>> fetchAiRecommendations(String token) async {
-  // Hardcoding service to 'groq' as requested
-  final String url = '$BACKEND_BASE_URL/api/movies/recommendations?service=groq';
-
-  final response = await http.get(
-    Uri.parse(url),
-    headers: _authHeaders(token),
-  );
-
-  if (response.statusCode == 200) {
-    final Map<String, dynamic> data = jsonDecode(response.body);
-    // Extract the list of titles from the "recommendations" key
-    final List<dynamic> titles = data['recommendations'];
-    return titles.map((title) => title.toString()).toList();
-  } else {
-    throw Exception('Failed to fetch recommendations: ${response.body}');
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Failed to reject movie: ${jsonDecode(response.body)['error']}',
+      );
+    }
   }
-}
+
+  //airecommendations
+
+  Future<List<String>> fetchAiRecommendations(
+    String token,
+    List<int> excludedIds,
+  ) async {
+    // Hardcoding service to 'groq' as requested
+    final String url =
+        '$BACKEND_BASE_URL/api/movies/recommendations?service=groq';
+
+    final response = await http.get(
+      Uri.parse(url), // Ensure this is POST
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      // Extract the list of titles from the "recommendations" key
+      final List<dynamic> titles = data['recommendations'];
+      return titles.map((title) => title.toString()).toList();
+    } else {
+      throw Exception('Failed to fetch recommendations: ${response.body}');
+    }
+  }
 }
