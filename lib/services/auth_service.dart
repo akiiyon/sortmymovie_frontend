@@ -32,23 +32,22 @@ class AuthService {
 
   // TODO: Implement register here
 
-Future<void> register(String username, String email, String password) async {
-  final response = await http.post(
-    Uri.parse('$baseUrl/register'),
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({
-      'username': username,
-      'email': email,
-      'password': password,
-    }),
-  );
+  Future<void> register(String username, String email, String password) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/register'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'username': username,
+        'email': email,
+        'password': password,
+      }),
+    );
 
-  if (response.statusCode != 201) {
-    final errorBody = jsonDecode(response.body);
-    throw Exception(errorBody['error'] ?? 'Registration failed');
+    if (response.statusCode != 201) {
+      final errorBody = jsonDecode(response.body);
+      throw Exception(errorBody['error'] ?? 'Registration failed');
+    }
   }
-}
-
 
   //get user details
   Future<User> fetchCurrentUser(String token) async {
@@ -67,4 +66,18 @@ Future<void> register(String username, String email, String password) async {
       throw Exception('Failed to fetch user profile.');
     }
   }
+  Future<void> logout(String token) async {
+  final response = await http.post(
+    Uri.parse('$baseUrl/logout'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+  );
+
+  if (response.statusCode != 200) {
+    final errorBody = jsonDecode(response.body);
+    throw Exception(errorBody['error'] ?? 'Logout failed');
+  }
+}
 }

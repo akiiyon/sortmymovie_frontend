@@ -21,7 +21,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: [const SuggestionsView(), ProfileView(isActive: _currentIndex == 1)]),
+      body: IndexedStack(
+        index: _currentIndex,
+        children: [
+          const SuggestionsView(),
+          ProfileView(isActive: _currentIndex == 1),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -29,9 +35,11 @@ class _HomeScreenState extends State<HomeScreen> {
             _currentIndex = index;
           });
         },
-        backgroundColor: const Color(0xFF1E1E1E),
-        selectedItemColor: Colors.deepPurpleAccent,
-        unselectedItemColor: Colors.grey,
+        backgroundColor: const Color(0xFF0C0C12), // was 0xFF1E1E1E
+        selectedItemColor: const Color(
+          0xFFE8C547,
+        ), // was Colors.deepPurpleAccent
+        unselectedItemColor: Colors.white38,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.movie_filter),
@@ -43,6 +51,3 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-
-
-

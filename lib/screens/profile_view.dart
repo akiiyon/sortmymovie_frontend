@@ -1,6 +1,6 @@
 // lib/screens/profile_view.dart
 import 'package:flutter/material.dart';
-// import 'package:frontend/screens/movie_detail_screen.dart';
+
 import 'package:frontend/screens/saved_movies_detail_screen.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -8,20 +8,21 @@ import '../providers/movie_provider.dart';
 
 class ProfileView extends StatefulWidget {
   final bool isActive;
-   const ProfileView({
-    super.key,
-    required this.isActive,
-  });
+  const ProfileView({super.key, required this.isActive});
 
   @override
   State<ProfileView> createState() => _ProfileViewState();
 }
 
 class _ProfileViewState extends State<ProfileView> {
+  static const _bg = Color(0xFF0C0C12);
+  static const _gold = Color(0xFFE8C547);
+  static const _surface = Color(0xFF1A1A24);
+  static const _border = Color(0xFF2A2A38);
+
   @override
   void initState() {
     super.initState();
-    // 1. Initial Load: Fetch only once when the widget is first created.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
     });
@@ -30,8 +31,6 @@ class _ProfileViewState extends State<ProfileView> {
   @override
   void didUpdateWidget(covariant ProfileView oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    // 2️⃣ Refresh when tab becomes active
     if (widget.isActive && !oldWidget.isActive) {
       _loadData();
     }
@@ -40,26 +39,21 @@ class _ProfileViewState extends State<ProfileView> {
   void _loadData() {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final movieProvider = Provider.of<MovieProvider>(context, listen: false);
-
-    // Fetch only if we have a token
     if (authProvider.token != null) {
       movieProvider.fetchSavedMovies(authProvider.token!);
-      print(movieProvider.savedMovies);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    final movieProvider = Provider.of<MovieProvider>(
-      context,
-    ); // Listens for updates automatically
+    final movieProvider = Provider.of<MovieProvider>(context);
     final user = authProvider.user;
 
     return Scaffold(
-      backgroundColor: Colors.black, // Ensure background matches your theme
+      backgroundColor: _bg, // was Colors.black
       appBar: AppBar(
-        title: const Text('My Profile'),
+        title: Text("${authProvider.user?.username ?? 'Your'} 's Watchlist"),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -72,15 +66,22 @@ class _ProfileViewState extends State<ProfileView> {
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFF2C2C2C),
-                borderRadius: BorderRadius.circular(16),
+                color: _surface, // was Color(0xFF2C2C2C)
+                borderRadius: BorderRadius.circular(8), // was 16
+                border: Border.all(
+                  color: _border,
+                ), // added to match login card feel
               ),
               child: Column(
                 children: [
                   const CircleAvatar(
                     radius: 40,
-                    backgroundColor: Colors.deepPurpleAccent,
-                    child: Icon(Icons.person, size: 40, color: Colors.white),
+                    backgroundColor: _gold, // was Colors.deepPurpleAccent
+                    child: Icon(
+                      Icons.person,
+                      size: 40,
+                      color: _bg,
+                    ), // icon color was Colors.white
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -93,7 +94,10 @@ class _ProfileViewState extends State<ProfileView> {
                   ),
                   Text(
                     user?.email ?? "email@example.com",
-                    style: const TextStyle(fontSize: 16, color: Colors.white54),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.white38,
+                    ), // was white54
                   ),
                   const SizedBox(height: 20),
                   SizedBox(
@@ -107,10 +111,33 @@ class _ProfileViewState extends State<ProfileView> {
                         );
                       },
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.deepPurple),
+                        side: const BorderSide(
+                          color: _gold,
+                        ), // was Colors.deepPurple
                         foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8), // was default
+                        ),
                       ),
                       child: const Text("Change Password"),
+                    ),
+                  ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        authProvider.logout();
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(
+                          color: _gold,
+                        ), // was Colors.deepPurple
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8), // was default
+                        ),
+                      ),
+                      child: const Text("Logout"),
                     ),
                   ),
                 ],
@@ -134,7 +161,9 @@ class _ProfileViewState extends State<ProfileView> {
               const Center(
                 child: Padding(
                   padding: EdgeInsets.all(32.0),
-                  child: CircularProgressIndicator(),
+                  child: CircularProgressIndicator(
+                    color: _gold, // was default
+                  ),
                 ),
               )
             else if (movieProvider.savedMovies.isEmpty)
@@ -143,7 +172,7 @@ class _ProfileViewState extends State<ProfileView> {
                 child: Center(
                   child: Text(
                     "No movies saved yet. Start swiping!",
-                    style: TextStyle(color: Colors.grey),
+                    style: TextStyle(color: Colors.white38), // was Colors.grey
                   ),
                 ),
               )
@@ -173,7 +202,7 @@ class _ProfileViewState extends State<ProfileView> {
                         );
                       },
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(8), // was 12
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
@@ -181,10 +210,10 @@ class _ProfileViewState extends State<ProfileView> {
                               movie.posterUrl ?? '',
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => Container(
-                                color: Colors.grey[800],
+                                color: _surface, // was Colors.grey[800]
                                 child: const Icon(
                                   Icons.movie,
-                                  color: Colors.white54,
+                                  color: Colors.white38, // was white54
                                 ),
                               ),
                             ),

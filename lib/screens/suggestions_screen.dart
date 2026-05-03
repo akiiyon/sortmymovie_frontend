@@ -8,43 +8,68 @@ import 'movie_detail_screen.dart';
 import '../widgets/movie_card.dart';
 import '../widgets/searchbar_widget.dart';
 
-// ... imports remain the same
-
 class SuggestionsView extends StatelessWidget {
   const SuggestionsView({super.key});
 
+  // Helper to get time-based greeting
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
   @override
   Widget build(BuildContext context) {
-    // ... build method remains the same
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final movieProvider = Provider.of<MovieProvider>(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF141414),
-      appBar: AppBar(
-        title: const Text('Movie Suggestions'),
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => authProvider.logout(),
-          ),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60.0),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 8.0,
+      // AppBar removed to allow for a custom branded header
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 1. Branded Header Section
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "${_getGreeting()},",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  Text(
+                    authProvider.user?.username ?? 'Movie Buff',
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.5,
+                      // color: Theme.of(context).primaryColor, // Use your gold/brand color here
+                    ),
+                  ),
+                ],
+              ),
             ),
-            child: SearchBarWidget(token: authProvider.token!),
-          ),
+
+            // 2. Search Bar Section
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
+              child: SearchBarWidget(token: authProvider.token!),
+            ),
+
+            // 3. Main Swiper Area
+            Expanded(child: _buildBody(context, authProvider, movieProvider)),
+          ],
         ),
-      ),
-      body: SizedBox(
-        width: double.infinity,
-        height: double.infinity,
-        child: _buildBody(context, authProvider, movieProvider),
       ),
     );
   }
@@ -56,11 +81,12 @@ class SuggestionsView extends StatelessWidget {
   ) {
     if ((movieProv.isLoading || movieProv.isAiLoading) &&
         movieProv.suggestionQueue.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(), // picks up gold from theme
+      );
     }
 
     if (movieProv.suggestionQueue.isEmpty) {
-      print("kuch bhi");
       return _buildEmptyState(context, auth, movieProv);
     }
 
@@ -84,25 +110,17 @@ class SuggestionsView extends StatelessWidget {
             child: MovieCard(movie: movie),
           );
         },
-
-        // ▼▼▼▼▼ UPDATED LOGIC HERE ▼▼▼▼▼
         onSwipe: (previousIndex, currentIndex, direction) {
           final currentMovie = movieProv.suggestionQueue[previousIndex];
-
-          // Logic: recordInteraction will now handle both Likes and Dislikes in the DB
           movieProv.recordInteraction(auth.token!, currentMovie, direction);
-
           return true;
         },
-
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
         padding: EdgeInsets.zero,
         isLoop: false,
       ),
     );
   }
 
-  // ... _buildEmptyState remains the same
   Widget _buildEmptyState(
     BuildContext context,
     AuthProvider auth,
@@ -112,7 +130,11 @@ class SuggestionsView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.movie_filter_outlined, size: 70, color: Colors.grey),
+          const Icon(
+            Icons.movie_filter_outlined,
+            size: 70,
+            color: Color(0xFFE8C547), // was Colors.grey
+          ),
           const SizedBox(height: 16),
           const Text(
             "No more movies left",
@@ -121,27 +143,12 @@ class SuggestionsView extends StatelessWidget {
           const SizedBox(height: 30),
           ElevatedButton(
             onPressed: () {
-              print("pressed");
               if (auth.token != null) {
-                // Now, when we call this, the provider should include the rejected IDs
-                print(auth.token);
                 movieProv.getAiRecommendations(auth.token!);
               }
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.deepPurpleAccent,
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: const Text(
-              "Load More Suggestions",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            // removed all style overrides — inherits gold button from theme
+            child: const Text("Load More Suggestions"),
           ),
         ],
       ),
