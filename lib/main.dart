@@ -51,12 +51,13 @@ class MovieSuggestionApp extends StatelessWidget {
       ),
       home: Consumer<AuthProvider>(
         builder: (context, auth, child) {
+          if (auth.isAuthenticated) return const HomeScreen();
           if (auth.isLoading) {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
           }
-          if (auth.isAuthenticated) return const HomeScreen();
+
           return auth.isFirstLaunch
               ? const RegisterScreen()
               : const LoginScreen();

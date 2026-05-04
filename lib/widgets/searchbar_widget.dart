@@ -20,17 +20,24 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
 
   Timer? _debounce;
   List<Movie> _searchResults = [];
+  final SearchController _searchController = SearchController();
 
   @override
   void dispose() {
     _debounce
         ?.cancel(); // 3. IMPORTANT: Cancel the timer when the widget is disposed
+    _searchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return SearchAnchor(
+      viewOnClose: () {
+        _searchController
+            .clear(); // now accessible as i decalared it class level
+        _searchResults = [];
+      },
       builder: (BuildContext context, SearchController controller) {
         return SearchBar(
           controller: controller,
@@ -43,6 +50,9 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
           },
           onChanged: (_) {
             controller.openView();
+          },
+          onSubmitted: (_) {
+            controller.clear(); //clear on submit
           },
           leading: const Icon(Icons.search),
         );

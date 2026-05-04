@@ -148,6 +148,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         keyboardType: TextInputType.emailAddress,
                         validator: (val) =>
                             val!.contains('@') ? null : 'Enter a valid email',
+                            
                       ),
                       const SizedBox(height: 14),
                       _buildField(
